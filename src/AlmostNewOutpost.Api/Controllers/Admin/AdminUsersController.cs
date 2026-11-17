@@ -3,6 +3,7 @@ using AlmostNewOutpost.Api.Models.Entities;
 using AlmostNewOutpost.Api.Models.Requests;
 using AlmostNewOutpost.Api.Models.Responses;
 using AlmostNewOutpost.Api.Models.Rows;
+using AlmostNewOutpost.Api.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -19,10 +20,12 @@ namespace AlmostNewOutpost.Api.Controllers.Admin
     {
         private readonly OutpostDbContext _db;
         private readonly IPasswordHasher<UserRow> _passwordHasher;
-        public AdminUsersController(OutpostDbContext db, IPasswordHasher<UserRow> passwordHasher)
+        private readonly UserService _userService;
+        public AdminUsersController(OutpostDbContext db, IPasswordHasher<UserRow> passwordHasher, UserService userService)
         {
             _db = db;
             _passwordHasher = passwordHasher;
+            _userService = userService;
         }
 
         
@@ -30,20 +33,7 @@ namespace AlmostNewOutpost.Api.Controllers.Admin
         [HttpGet]
         public async Task<ActionResult<List<AdminUserDto>>> GetAll([FromQuery] bool includeArchived = false)
         {
-            List<AdminUserDto> users = await (
-                from user in _db.Users
-                join role in _db.Roles on user.RoleId equals role.RoleId
-                where includeArchived || user.ArchivedAtUtc == null
-                orderby user.Username
-                select new AdminUserDto
-                {
-                    Id = user.UserId,
-                    Username = user.Username,
-                    RoleId = role.RoleId,
-                    Role = role.RoleName,
-                    ArchivedAtUtc = user.ArchivedAtUtc,
-                }).ToListAsync();
-
+            List<AdminUserDto> users = await _userService.GetAllAsync(includeArchived);
             return Ok(users);
         }
 
@@ -127,7 +117,7 @@ namespace AlmostNewOutpost.Api.Controllers.Admin
             {
                 return Problem(title: "That username is already taken.", statusCode: StatusCodes.Status409Conflict);
             }
-            int roleId = request.RoleId ?? 0;
+            int roleId = request.RoleId!.Value;
             bool roleIdExist = await _db.Roles.AnyAsync(role => role.RoleId == roleId);
             if (!roleIdExist)
             {
