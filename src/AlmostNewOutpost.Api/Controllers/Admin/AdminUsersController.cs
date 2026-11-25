@@ -138,8 +138,47 @@ namespace AlmostNewOutpost.Api.Controllers.Admin
 
 
         }
-        
 
+        [HttpPost("{id:int}/archive")]
+        public async Task<IActionResult> Archive(int id)
+        {
+            UserOperationStatus status = await _userService.ArchivedAsync(id);
 
+            switch (status)
+            {
+                case UserOperationStatus.Success:
+                    return NoContent();
+                case UserOperationStatus.NotFound:
+                    return Problem(title: "User not found.", 
+                        statusCode: StatusCodes.Status404NotFound);
+                case UserOperationStatus.AlreadyArchived:
+                    return Problem(title: "User is already archived.", 
+                        statusCode: StatusCodes.Status409Conflict);
+                default:
+                    return Problem(title: "Something went wrong.", 
+                        statusCode: StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPost("{id:int}/restore")]
+        public async Task<IActionResult> Restore(int id)
+        {
+            UserOperationStatus status = await _userService.RestoreAsync(id);
+
+            switch (status)
+            {
+                case UserOperationStatus.Success:
+                    return NoContent();
+                case UserOperationStatus.NotFound:
+                    return Problem(title: "User not found.",
+                        statusCode: StatusCodes.Status404NotFound);
+                case UserOperationStatus.NotArchived:
+                    return Problem(title: "User is not archived.",
+                        statusCode: StatusCodes.Status409Conflict);
+                default:
+                    return Problem(title: "Something went wrong.",
+                        statusCode: StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 }
