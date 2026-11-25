@@ -26,6 +26,7 @@ public static class DatabaseServiceExtensions
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<IPurchaseRepository, PurchaseRepository>();
         services.AddScoped<IUserAdminRepository, UserAdminRepository>();
+        services.AddScoped<IAdminRolesRepository, AdminRolesRepository>();
 
         return services;
     }

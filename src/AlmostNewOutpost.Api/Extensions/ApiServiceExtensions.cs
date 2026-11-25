@@ -36,6 +36,7 @@ public static class ApiServiceExtensions
         services.AddScoped<ProductService>();
         services.AddScoped<UserService>();
         services.AddScoped<PurchaseService>();
+        services.AddScoped<IAdminRolesService, AdminRolesService>();
 
         return services;
     }
